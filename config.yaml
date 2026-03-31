@@ -33,13 +33,13 @@ life_cycle: 'beta'
 license: 'CC-BY 4.0'
 
 # Link to the source repository for this lesson
-source: 'https://github.com/carpentries-incubator/hpc-intro'
+source: 'https://github.com/supermeisi/hpc-intro'
 
 # Default branch of your lesson
 branch: 'main'
 
 # Who to contact if there are any issues
-contact: 'team@carpentries.org'
+contact: 'mustafa.schmidt@uni-siegen.de'
 
 # Navigation ------------------------------------------------
 #
@@ -72,6 +72,8 @@ episodes:
   - 14-environment-variables.Rmd
   - 15-modules.Rmd
   - 16-transferring-files.Rmd
+# Restore after issue #482 is addressed.
+#   - 21-array.Rmd
   - 17-parallel.Rmd
   - 18-resources.Rmd
   - 19-responsibility.Rmd
@@ -112,6 +114,6 @@ default_config: episodes/files/customization/HPCC_MagicCastle_slurm/_config_opti
 # custom_config: episodes/files/customization/Ghastly_Mistakes/_config_options.yml
 
 carpentry_description: Lesson Description
-url: 'https://carpentries-incubator.github.io/hpc-intro/'
+url: 'https://carpentries-incubator.supermeisi.io/hpc-intro/'
 analytics: carpentries
 lang: en
