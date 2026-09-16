@@ -4,11 +4,8 @@ teaching: 30
 exercises: 60
 ---
 
-
-
 ::::::::::::::::::::::::::::::::::::::: objectives
 
-- Install a Python package using `pip`
 - Prepare a job submission script for the parallel executable.
 - Launch jobs with parallel execution.
 - Record and summarize the timing and accuracy of jobs.
@@ -24,143 +21,11 @@ exercises: 60
 
 ::::::::::::::::::::::::::::::::::::::::::::::::::
 
-We now have the tools we need to run a multi-processor job. This is a very
-important aspect of HPC systems, as parallelism is one of the primary tools
-we have to improve the performance of computational tasks.
-
-If you disconnected, log back in to the cluster.
-
-```bash
-[you@laptop:~]$ ssh yourUsername@cluster.hpc-carpentry.org
-```
-
-## Install the Amdahl Program
-
-With the Amdahl source code on the cluster, we can install it, which will
-provide access to the `amdahl` executable.
-Move into the extracted directory, then use the Package Installer for Python,
-or `pip`, to install it in your ("user") home directory:
-
-```bash
-[yourUsername@login1 ~]$ cd amdahl
-[yourUsername@login1 ~]$ python3 -m pip install --user .
-```
-
-:::::::::::::::::::::::::::::::::::::::::  callout
-
-## Amdahl is Python Code
-
-The Amdahl program is written in Python, and installing or using it requires
-locating the `python3` executable on the login node.
-If it can't be found, try listing available modules using `module avail`,
-load the appropriate one, and try the command again.
-
-
-::::::::::::::::::::::::::::::::::::::::::::::::::
-
-### MPI for Python
-
-The Amdahl code has one dependency: **mpi4py**.
-If it hasn't already been installed on the cluster, `pip` will attempt to
-collect mpi4py from the Internet and install it for you.
-If this fails due to a one-way firewall, you must retrieve mpi4py on your
-local machine and upload it, just as we did for Amdahl.
-
-::::::::::::::::::::::::::::::::::::::  discussion
-
-## Retrieve and Upload `mpi4py`
-
-If installing Amdahl failed because mpi4py could not be installed,
-retrieve the tarball from <https://github.com/mpi4py/mpi4py/tarball/master>
-then `rsync` it to the cluster, extract, and install:
-
-```bash
-[you@laptop:~]$ wget -O mpi4py.tar.gz https://github.com/mpi4py/mpi4py/releases/download/3.1.4/mpi4py-3.1.4.tar.gz
-[you@laptop:~]$ scp mpi4py.tar.gz yourUsername@cluster.hpc-carpentry.org:
-# or
-[you@laptop:~]$ rsync -avP mpi4py.tar.gz yourUsername@cluster.hpc-carpentry.org:
-```
-
-```bash
-[you@laptop:~]$ ssh yourUsername@cluster.hpc-carpentry.org
-[yourUsername@login1 ~]$ tar -xvzf mpi4py.tar.gz  # extract the archive
-[yourUsername@login1 ~]$ mv mpi4py* mpi4py        # rename the directory
-[yourUsername@login1 ~]$ cd mpi4py
-[yourUsername@login1 ~]$ python3 -m pip install --user .
-[yourUsername@login1 ~]$ cd ../amdahl
-[yourUsername@login1 ~]$ python3 -m pip install --user .
-```
-
-::::::::::::::::::::::::::::::::::::::::::::::::::
-
-::::::::::::::::::::::::::::::::::::::  discussion
-
-## If `pip` Raises a Warning...
-
-`pip` may warn that your user package binaries are not in your PATH.
-
-```warning
-WARNING: The script amdahl is installed in "${HOME}/.local/bin" which is
-not on PATH. Consider adding this directory to PATH or, if you prefer to
-suppress this warning, use --no-warn-script-location.
-```
-
-To check whether this warning is a problem, use `which` to search for the
-`amdahl` program:
-
-```bash
-[yourUsername@login1 ~]$ which amdahl
-```
-
-If the command returns no output, displaying a new prompt, it means the file
-`amdahl` has not been found. You must update the environment variable named
-`PATH` to include the missing folder.
-Edit your shell configuration file as follows, then log off the cluster and
-back on again so it takes effect.
-
-```bash
-[yourUsername@login1 ~]$ nano ~/.bashrc
-[yourUsername@login1 ~]$ tail ~/.bashrc
-```
-
-```output
-export PATH=${PATH}:${HOME}/.local/bin
-```
-
-After logging back in to cluster.hpc-carpentry.org, `which` should be able to
-find `amdahl` without difficulties.
-If you had to load a Python module, load it again.
-
-
-::::::::::::::::::::::::::::::::::::::::::::::::::
-
-## Help!
-
-Many command-line programs include a "help" message. Try it with `amdahl`:
-
-```bash
-[yourUsername@login1 ~]$ amdahl --help
-```
-
-```output
-usage: amdahl [-h] [-p [PARALLEL_PROPORTION]] [-w [WORK_SECONDS]] [-t] [-e] [-j [JITTER_PROPORTION]]
-
-optional arguments:
-  -h, --help            show this help message and exit
-  -p [PARALLEL_PROPORTION], --parallel-proportion [PARALLEL_PROPORTION]
-                        Parallel proportion: a float between 0 and 1
-  -w [WORK_SECONDS], --work-seconds [WORK_SECONDS]
-                        Total seconds of workload: an integer greater than 0
-  -t, --terse           Format output as a machine-readable object for easier analysis
-  -e, --exact           Exactly match requested timing by disabling random jitter
-  -j [JITTER_PROPORTION], --jitter-proportion [JITTER_PROPORTION]
-                        Random jitter: a float between -1 and +1
-```
-
-This message doesn't tell us much about what the program *does*, but it does
-tell us the important flags we might want to use when launching it.
 
 ## Running the Job on a Compute Node
+
+At this point, we have installed the `amdahl` executable on the
+system, and can now run it on the cluster.
 
 Create a submission file, requesting one task on a single node, then launch it.
 
@@ -172,8 +37,8 @@ Create a submission file, requesting one task on a single node, then launch it.
 
 ```bash
 #!/bin/bash
-#SBATCH -J solo-job
-#SBATCH -p cpubase_bycore_b1
+#SBATCH --job-name solo-job
+#SBATCH --partition cpubase_bycore_b1
 #SBATCH -N 1
 #SBATCH -n 1
 
@@ -210,7 +75,7 @@ job from. For example,
 ```
 
 ```output
-slurm-347087.out  serial-job.sh  amdahl  README.md  LICENSE.txt
+slurm-347087.out  serial-job.sh  amdahl  LICENSE  pyproject.toml  README.md
 ```
 
 ```bash
@@ -218,26 +83,26 @@ slurm-347087.out  serial-job.sh  amdahl  README.md  LICENSE.txt
 ```
 
 ```output
-Doing 30.000 seconds of 'work' on 1 processor,
-which should take 30.000 seconds with 0.850 parallel proportion of the workload.
+Doing 30.000000 seconds of 'work' on 1 processor,
+which should take 30.000000 seconds with 0.800000 parallel proportion of the workload.
 
-  Hello, World! I am process 0 of 1 on smnode1. I will do all the serial 'work' for 4.500 seconds.
-  Hello, World! I am process 0 of 1 on smnode1. I will do parallel 'work' for 25.500 seconds.
+  Hello, World! I am process 0 of 1 on smnode1. I will do all the serial 'work' for 7.021608 seconds.
+  Hello, World! I am process 0 of 1 on smnode1. I will do parallel 'work' for 26.302983 seconds.
 
-Total execution time (according to rank 0): 30.033 seconds
+Total execution time (according to rank 0): 33.326056 seconds
 ```
 
 :::::::::::::::::::::::::
 
 As we saw before, two of the `amdahl` program flags set the amount of work and
 the proportion of that work that is parallel in nature. Based on the output, we
-can see that the code uses a default of 30 seconds of work that is 85%
+can see that the code uses a default of 30 seconds of work that is 80%
 parallel. The program ran for just over 30 seconds in total, and if we run the
-numbers, it is true that 15% of it was marked 'serial' and 85% was 'parallel'.
+numbers, it is true that 20% of it was marked 'serial' and 80% was 'parallel'.
 
 Since we only gave the job one CPU, this job wasn't really parallel: the same
-processor performed the 'serial' work for 4.5 seconds, then the 'parallel' part
-for 25.5 seconds, and no time was saved. The cluster can do better, if we ask.
+processor performed the 'serial' work for 7.02 seconds, then the 'parallel' part
+for 26.30 seconds, and no time was saved. The cluster can do better, if we ask.
 
 ## Running the Parallel Job
 
@@ -294,8 +159,8 @@ Let's modify the job script to request more cores and use the MPI run-time.
 
 ```bash
 #!/bin/bash
-#SBATCH -J parallel-job
-#SBATCH -p cpubase_bycore_b1
+#SBATCH --job-name parallel-job
+#SBATCH --partition cpubase_bycore_b1
 #SBATCH -N 1
 #SBATCH -n 4
 
@@ -323,7 +188,8 @@ As before, use the status commands to check when your job runs.
 ```
 
 ```output
-slurm-347178.out  parallel-job.sh  slurm-347087.out  serial-job.sh  amdahl  README.md  LICENSE.txt
+slurm-347178.out  parallel-job.sh  amdahl   pyproject.toml
+slurm-347087.out  serial-job.sh    LICENSE  README.md
 ```
 
 ```bash
@@ -331,16 +197,16 @@ slurm-347178.out  parallel-job.sh  slurm-347087.out  serial-job.sh  amdahl  READ
 ```
 
 ```output
-Doing 30.000 seconds of 'work' on 4 processors,
-which should take 10.875 seconds with 0.850 parallel proportion of the workload.
+Doing 30.000000 seconds of 'work' on 4 processors,
+ which should take 12.000000 seconds with 0.800000 parallel proportion of the workload.
 
-  Hello, World! I am process 0 of 4 on smnode1. I will do all the serial 'work' for 4.500 seconds.
-  Hello, World! I am process 2 of 4 on smnode1. I will do parallel 'work' for 6.375 seconds.
-  Hello, World! I am process 1 of 4 on smnode1. I will do parallel 'work' for 6.375 seconds.
-  Hello, World! I am process 3 of 4 on smnode1. I will do parallel 'work' for 6.375 seconds.
-  Hello, World! I am process 0 of 4 on smnode1. I will do parallel 'work' for 6.375 seconds.
+  Hello, World! I am process 0 of 4 on smnode1. I will do all the serial 'work' for 6.851971 seconds.
+  Hello, World! I am process 2 of 4 on smnode1. I will do parallel 'work' for 6.726753 seconds.
+  Hello, World! I am process 1 of 4 on smnode1. I will do parallel 'work' for 6.742398 seconds.
+  Hello, World! I am process 3 of 4 on smnode1. I will do parallel 'work' for 6.782674 seconds.
+  Hello, World! I am process 0 of 4 on smnode1. I will do parallel 'work' for 6.468167 seconds.
 
-Total execution time (according to rank 0): 10.888 seconds
+Total execution time (according to rank 0): 13.579746 seconds
 ```
 
 :::::::::::::::::::::::::::::::::::::::  challenge
@@ -411,8 +277,8 @@ code gets.
 
 ```bash
 #!/bin/bash
-#SBATCH -J parallel-job
-#SBATCH -p cpubase_bycore_b1
+#SBATCH --job-name parallel-job
+#SBATCH --partition cpubase_bycore_b1
 #SBATCH -N 1
 #SBATCH -n 8
 
@@ -440,7 +306,8 @@ As before, use the status commands to check when your job runs.
 ```
 
 ```output
-slurm-347271.out  parallel-job.sh  slurm-347178.out  slurm-347087.out  serial-job.sh  amdahl  README.md  LICENSE.txt
+slurm-347271.out     slurm-347178.out  serial-job.sh  LICENSE         README.md
+parallel-job.sh      slurm-347087.out  amdahl         pyproject.toml
 ```
 
 ```bash
@@ -448,19 +315,20 @@ slurm-347271.out  parallel-job.sh  slurm-347178.out  slurm-347087.out  serial-jo
 ```
 
 ```output
-which should take 7.688 seconds with 0.850 parallel proportion of the workload.
+Doing 30.000000 seconds of 'work' on 8 processors,
+ which should take 9.000000 seconds with 0.800000 parallel proportion of the workload.
 
-  Hello, World! I am process 4 of 8 on smnode1. I will do parallel 'work' for 3.188 seconds.
-  Hello, World! I am process 0 of 8 on smnode1. I will do all the serial 'work' for 4.500 seconds.
-  Hello, World! I am process 2 of 8 on smnode1. I will do parallel 'work' for 3.188 seconds.
-  Hello, World! I am process 1 of 8 on smnode1. I will do parallel 'work' for 3.188 seconds.
-  Hello, World! I am process 3 of 8 on smnode1. I will do parallel 'work' for 3.188 seconds.
-  Hello, World! I am process 5 of 8 on smnode1. I will do parallel 'work' for 3.188 seconds.
-  Hello, World! I am process 6 of 8 on smnode1. I will do parallel 'work' for 3.188 seconds.
-  Hello, World! I am process 7 of 8 on smnode1. I will do parallel 'work' for 3.188 seconds.
-  Hello, World! I am process 0 of 8 on smnode1. I will do parallel 'work' for 3.188 seconds.
+  Hello, World! I am process 4 of 8 on smnode1. I will do parallel 'work' for 3.157831 seconds.
+  Hello, World! I am process 0 of 8 on smnode1. I will do all the serial 'work' for 6.031285 seconds.
+  Hello, World! I am process 2 of 8 on smnode1. I will do parallel 'work' for 3.215214 seconds.
+  Hello, World! I am process 1 of 8 on smnode1. I will do parallel 'work' for 3.524280 seconds.
+  Hello, World! I am process 3 of 8 on smnode1. I will do parallel 'work' for 3.589039 seconds.
+  Hello, World! I am process 5 of 8 on smnode1. I will do parallel 'work' for 3.501589 seconds.
+  Hello, World! I am process 6 of 8 on smnode1. I will do parallel 'work' for 3.207707 seconds.
+  Hello, World! I am process 7 of 8 on smnode1. I will do parallel 'work' for 3.071680 seconds.
+  Hello, World! I am process 0 of 8 on smnode1. I will do parallel 'work' for 3.482018 seconds.
 
-Total execution time (according to rank 0): 7.697 seconds
+Total execution time (according to rank 0): 9.514393 seconds
 ```
 
 ::::::::::::::::::::::::::::::::::::::  discussion
@@ -481,9 +349,9 @@ Now, let's summarize the amount of time it took each job to run:
 
 | Number of CPUs | Runtime (sec) |
 | -------------- | ------------- |
-| 1              | 30\.033        |
-| 4              | 10\.888        |
-| 8              | 7\.697         |
+| 1              | 33\.326056    |
+| 4              | 13\.579746    |
+| 8              | 9\.514393     |
 
 Then, use the first row to compute speedups $S$, using Python as a command-line
 calculator and the formula
@@ -493,17 +361,17 @@ S(t_{n}) = \frac{t_{1}}{t_{n}}
 $$
 
 ```bash
-[yourUsername@login1 ~]$ for n in 30.033 10.888 7.697; do python3 -c "print(30.033 / $n)"; done
+[yourUsername@login1 ~]$ for n in 33.326056 13.579746 9.514393; do python3 -c "print(33.326056 / $n)"; done
 ```
 
-| Number of CPUs | Speedup       | Ideal |
-| -------------- | ------------- | ----- |
+| Number of CPUs | Speedup        | Ideal |
+| -------------- | -------------- | ----- |
 | 1              | 1\.0           | 1     |
-| 4              | 2\.75          | 4     |
-| 8              | 3\.90          | 8     |
+| 4              | 2\.45          | 4     |
+| 8              | 3\.50          | 8     |
 
-The job output files have been telling us that this program is performing 85%
-of its work in parallel, leaving 15% to run in serial. This seems reasonably
+The job output files have been telling us that this program is performing 80%
+of its work in parallel, leaving 20% to run in serial. This seems reasonably
 high, but our quick study of speedup shows that in order to get a 4× speedup,
 we have to use 8 or 9 processors in parallel. In real programs, the speedup
 factor is influenced by

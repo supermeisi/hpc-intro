@@ -4,8 +4,6 @@ teaching: 15
 exercises: 5
 ---
 
-
-
 ::::::::::::::::::::::::::::::::::::::: objectives
 
 - Describe what an HPC system is
@@ -15,7 +13,7 @@ exercises: 5
 
 :::::::::::::::::::::::::::::::::::::::: questions
 
-- Why would I be interested in High Performance Computing (HPC)?
+- Why would I be interested in High-Performance Computing (HPC)?
 - What can I expect to learn from this course?
 
 ::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -46,12 +44,12 @@ of the desktop or laptop computer where they started:
   region's calculations simultaneously (in **parallel**), communicate selected
   results to adjacent regions as needed, and repeat the calculations to
   converge on a final set of results. In moving from a 2D to a 3D model, **both
-  the amount of data and the amount of calculations increases greatly**, and
-  it's theoretically possible to distribute the calculations across multiple
-  computers communicating over a shared network.
+  the amount of data and the amount of calculations (the number of computations)
+  increases greatly**, and it's theoretically possible to distribute the
+  calculations across multiple computers (nodes) communicating over a shared network.
 
 In all these cases, access to more (and larger) computers is needed. Those
-computers should be usable at the same time, **solving many researchers'
+computers should be usable at the same time, **solving many researcher's
 problems in parallel**.
 
 ## Jargon Busting Presentation
@@ -105,7 +103,7 @@ working together.
 
 :::::::::::::::::::::::::::::::::::::::: keypoints
 
-- High Performance Computing (HPC) typically involves connecting to very large
+- High-Performance Computing (HPC) typically involves connecting to very large
   computing systems elsewhere in the world.
 - These other systems can be used to do work that would either be impossible or
   much slower on smaller systems.

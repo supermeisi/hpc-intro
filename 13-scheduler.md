@@ -4,8 +4,6 @@ teaching: 45
 exercises: 30
 ---
 
-
-
 ::::::::::::::::::::::::::::::::::::::: objectives
 
 - Submit a simple script to the cluster.
@@ -170,7 +168,7 @@ following the `#SBATCH` comment is interpreted as an
 instruction to the scheduler.
 
 Let's illustrate this by example. By default, a job's name is the name of the
-script, but the `-J` option can be used to change the
+script, but the `--job-name` option can be used to change the
 name of a job. Add an option to the script:
 
 ```bash
@@ -179,7 +177,7 @@ name of a job. Add an option to the script:
 
 ```bash
 #!/bin/bash
-#SBATCH -Jhello-world
+#SBATCH --job-name hello-world
 
 echo -n "This script is running on "
 hostname
@@ -201,30 +199,51 @@ Fantastic, we've successfully changed the name of our job!
 
 ### Resource Requests
 
-What about more important changes, such as the number of cores and memory for
-our jobs? One thing that is absolutely critical when working on an HPC system
-is specifying the resources required to run a job. This allows the scheduler to
-find the right time and place to schedule our job. If you do not specify
-requirements (such as the amount of time you need), you will likely be stuck
-with your site's default resources, which is probably not what you want.
+What about more important changes, such as the number of CPUs and the amount of
+memory required for our jobs? One thing that is absolutely critical when working
+on an HPC system is specifying the resources required to run a job. This allows
+the scheduler to find suitable resources and schedule the job effectively. If you
+do not specify requirements (such as the amount of time you need), you will likely
+be assigned your site's default resources, which is probably not what you want.
 
 The following are several key resource requests:
 
-- `--ntasks=<ntasks>` or `-n <ntasks>`: How many CPU cores does your job need,
-  in total?
+- `--ntasks=<number>` or `-n <number>`: How many parallel tasks (typically MPI
+  ranks or processes) should Slurm launch?
 
-- `--time <days-hours:minutes:seconds>` or `-t <days-hours:minutes:seconds>`:
+- `--ntasks-per-node=<ntasks>`: How many tasks should be launched on each compute
+  node?
+
+- `--cpus-per-task=<ncpus>` or `-c <ncpus>`: How many CPUs should be allocated
+  to each task/process?
+
+- `--partition=<partition>` or `-p <partition>`: Specify which scheduler
+  partition/queue the job should run in.
+
+- `--time=<days-hours:minutes:seconds>` or `-t <days-hours:minutes:seconds>`:
   How much real-world time (walltime) will your job take to run? The `<days>`
   part can be omitted.
 
-- `--mem=<megabytes>`: How much memory on a node does your job need in
-  megabytes? You can also specify gigabytes using by adding a little "g"
-  afterwards (example: `--mem=5g`)
+- `--mem=<size>[units]`: How much memory should be allocated per node for your job?
+  Memory units may be specified using the following suffixes:
+    - `K` or `k` for kilobytes
+    - `M` or `m` for megabytes
+    - `G` or `g` for gigabytes
+    - `T` or `t` for terabytes
+  Example: `--mem=5G` or `--mem=5g`
 
-- `--nodes=<nnodes>` or `-N <nnodes>`: How many separate machines does your job
-  need to run on? Note that if you set `ntasks` to a number greater than what
-  one machine can offer, Slurm will set this value
-  automatically.
+- `--mem-per-cpu=<size>[units]`: How much memory should be allocated per CPU?
+  This is commonly used on shared-node systems where memory allocation is tied to
+  CPU allocation.
+
+- `--nodes=<nnodes>` or `-N <nnodes>`: How many compute nodes should be allocated
+  for your job? Note that if the requested `ntasks` count cannot fit within
+  available resources of one node, Slurm may allocate multiple
+  nodes automatically, subject to partition limits and scheduler policies.
+
+For some resources, such as GPUs, the way to request them may be site-specific
+or specific to version of the resource scheduler. For this reason we do not
+include them in the list above.
 
 Note that just *requesting* these resources does not make your job run faster,
 nor does it necessarily mean that you will consume all of these resources. It
@@ -253,7 +272,7 @@ for it on the cluster.
 
 ```bash
 #!/bin/bash
-#SBATCH -t 00:01 # timeout in HH:MM
+#SBATCH --time 00:01 # timeout in HH:MM
 
 echo -n "This script is running on "
 sleep 20 # time in seconds
@@ -282,8 +301,8 @@ wall time, and attempt to run a job for two minutes.
 
 ```bash
 #!/bin/bash
-#SBATCH -Jlong_job
-#SBATCH -t 00:01 # timeout in HH:MM
+#SBATCH --job-name long_job
+#SBATCH --time 00:01 # timeout in HH:MM
 
 echo "This script is running on ... "
 sleep 240 # time in seconds
